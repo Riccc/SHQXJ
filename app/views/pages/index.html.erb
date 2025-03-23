@@ -1,0 +1,604 @@
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url('<%= asset_path('background_new_6.jpeg') %>');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    #modal-content{
+        background-image: url('<%= asset_path('background_share.jpeg') %>');
+        background-size: cover; /* 图片按比例缩放，覆盖整个模态框 */
+        background-position: center; /* 图片居中显示 */
+        background-repeat: no-repeat; /* 防止图片重复 */
+    }
+    /* 页面内容容器 */
+    .container {
+        padding: 20px;
+    }
+
+    /* 模态框背景遮罩 */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000; /* 确保模态框在最顶层 */
+    }
+
+    /* 模态框内容 */
+    .modal-content {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        position: relative; /* 确保关闭按钮定位正确 */
+    }
+
+    /* 模态框标题 */
+    .modal-content h2 {
+        margin-bottom: 1.5rem;
+        font-size: 24px;
+        color: #333;
+    }
+
+    /* 输入框样式 */
+    .modal-content input {
+        width: 70%;
+        padding: 10px;
+        margin-bottom: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    /* 登录按钮样式 */
+    .modal-content button {
+        width: 100%;
+        padding: 10px;
+        background-color: #6a11cb;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .modal-content button:hover {
+        background-color: #2575fc;
+    }
+
+    /* 关闭按钮样式 */
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .close-btn:hover {
+        color: #333;
+    }
+
+    /* 登录成功提示 */
+    .success-message {
+        color: #28a745;
+        font-size: 18px;
+        margin-top: 1rem;
+    }
+
+    /* 登录失败提示 */
+    .error-message {
+        color: #dc3545;
+        font-size: 18px;
+        margin-top: 1rem;
+    }
+
+    /* 绿色勾图标 */
+    .checkmark {
+        font-size: 48px;
+        color: #28a745;
+        margin-top: 1rem;
+    }
+</style>
+
+<!-- 登录模态框 -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-content">
+    <span class="close-btn" id="closeBtn">&times;</span>
+    <h2>欢迎登录</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="用户名" required>
+      <input type="password" id="password" placeholder="密码" required>
+      <button type="submit">登录</button>
+    </form>
+    <!-- 登录成功或失败提示 -->
+    <div id="loginMessage"></div>
+  </div>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: flex-start; height: 3vh; padding-top: 30px; padding-left: 10px;">
+  <!-- 左侧 Logo -->
+  <div>
+    <%= image_tag 'top_left_logo.png', style: 'height: 50px; margin-right: 20px;' %>
+  </div>
+
+  <!-- 右侧文字 -->
+  <div style="flex-grow: 1; text-align: center;">
+    <h1 style="margin: 0; font-size: 36px; color: #062e24;padding-right: 60px;">天气预报互动体验平台</h1>
+  </div>
+</div>
+
+<div style="background-color: transparent; border-radius: 15px; padding: 20px; margin: 20px;margin-bottom: 0px;padding-bottom: 0px">
+
+  <!-- 图片和日期选择控件 -->
+  <div style="display: flex; align-items: center; justify-content: space-between;">
+    <!-- 左侧图片 -->
+    <div>
+      <%= image_tag 'BTQ.png', style: 'height: 30px;' %>
+    </div>
+
+    <!-- 右侧日期选择控件 -->
+    <div style="background-color: #f0f0f0; border-radius: 30px; padding: 10px; border: 2px solid #ffffcc;">
+      <input type="date" id="date" name="date" style="border: none; background: transparent; font-size: 16px; color: #333;" value="2025-03-20">
+    </div>
+  </div>
+
+
+  <div style="background-color: #f3ececab; border-radius: 15px; padding: 20px; margin: 20px; position: relative;">
+    <!-- 向左箭头 -->
+    <button id="scroll-left" style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+      <%= image_tag 'go-left.png', style: 'width: 14px; height: 24px;' %>
+    </button>
+
+    <!-- 卡片区域 -->
+    <div id="card-container" style="display: flex; gap: 10px; overflow-x: hidden; margin: 0 40px;">
+      <% (1..13).each do |i| %>
+        <div class="card" style="flex: 0 0 100px; height: 120px; background-color: transparent; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;">
+          <%= image_tag "icon#{i}.png", style: 'width: 50px; height: 50px;' %>
+          <div style="margin-top: 10px; font-size: 14px; text-align: center;">
+            <%= @weather_texts[i - 1] %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- 向右箭头 -->
+    <button id="scroll-right" style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+      <%= image_tag 'go-right.png', style: 'width: 14px; height: 24px;' %>
+    </button>
+  </div>
+
+  <div style="background-color: #f3ececab; border-radius: 15px; padding: 20px; margin: 20px;">
+    <!-- 三个水平对齐的 div -->
+    <div style="display: flex; gap: 20px;">
+      <!-- 第一个 div：风力风向 -->
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+        <label style="font-size: 16px; color: black;">风力风向</label>
+        <select style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; background-color: #f3ececab;">
+          <% (0..17).each do |i| %>
+            <option value="<%= i %>"><%= i %> 级</option>
+          <% end %>
+        </select>
+        <select style="padding: 5px; border-radius: 5px; border: 1px solid #ccc;font-size: 15px;background-color: #f3ececab;">
+          <option value="east">东风</option>
+          <option value="west">西风</option>
+          <option value="south">南风</option>
+          <option value="north">北风</option>
+        </select>
+      </div>
+
+      <!-- 第二个 div：温度区间 -->
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+        <!-- 温度选择下拉框 -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <!-- 低温选择 -->
+          <div style="flex: 1; margin-right: 10px;">
+            <label for="low-temp" style="font-size: 14px; color: black; display: block; margin-bottom: 5px;">
+              低温（°C）
+            </label>
+            <select
+                id="low-temp"
+                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 14px; outline: none;background-color: #f3ececab;">
+              <!-- 动态生成低温选项 -->
+              <script>
+                  for (let i = -20; i <= 50; i++) {
+                      document.write(`<option value="${i}">${i}°C</option>`);
+                  }
+              </script>
+            </select>
+          </div>
+
+          <!-- 高温选择 -->
+          <div style="flex: 1; margin-left: 10px;">
+            <label for="high-temp" style="font-size: 14px; color: black; display: block; margin-bottom: 5px;">
+              高温（°C）
+            </label>
+            <select
+                id="high-temp"
+                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 14px; outline: none;background-color: #f3ececab;">
+              <!-- 动态生成高温选项 -->
+              <script>
+                  for (let i = -20; i <= 50; i++) {
+                      document.write(`<option value="${i}" ${i === 50 ? 'selected' : ''}>${i}°C</option>`);
+                  }
+              </script>
+            </select>
+          </div>
+        </div>
+
+        <!-- 当前温度区间显示 -->
+        <div id="temperature-range" style="font-size: 14px; color: black; text-align: left; margin-bottom: 20px;">
+          当前温度区间：-20°C 到 50°C
+        </div>
+      </div>
+
+      <!-- 第三个 div（占位） -->
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+        <!-- 文字标签和按钮水平对齐 -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <!-- 文字标签 -->
+          <label style="font-size: 16px; color: black; margin: 0;">温馨提示</label>
+
+          <!-- 按钮 -->
+          <button
+            id="edit-button"
+            style="padding: 5px 10px; font-size: 14px; color: #fff; background-color: orange; border: none; border-radius: 5px; cursor: pointer;"
+            onclick="toggleEditor()"
+          >
+            自己写
+          </button>
+        </div>
+
+        <!-- 富文本下拉框 -->
+        <div id="rich-text-container">
+          <!-- 下拉框 -->
+          <select
+            id="rich-text-select"
+            style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; width: 100%; height: 35px; font-size: 14px;background-color: #f3ececab;"
+          >
+            <option value="请选择预设句子">请选择预设句子</option>
+            <option value="今天天气很好，适合外出。">今天天气很好，适合外出。</option>
+            <option value="请注意防寒保暖。">请注意防寒保暖。</option>
+            <option value="天气炎热，注意防晒。">天气炎热，注意防晒。</option>
+          </select>
+
+          <!-- 富文本编辑器 -->
+          <textarea
+            id="rich-text-area"
+            style="background-color: #f3ececab;display: none; width: 100%; height: 100px; padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px;"
+            placeholder="在这里输入自定义内容..."
+          ></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background-color: #f3ececab; border-radius: 15px; padding: 20px; margin: 20px;">
+    <!-- 外层 Flex 容器 -->
+    <div style="display: flex; align-items: center; gap: 10px;"> <!-- 减少 gap 为 10px -->
+      <!-- 左侧 div：温度、天气、文本内容 -->
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; justify-content: center;max-width: 400px;text-align: center;">
+        <!-- 显示温度 -->
+        <div style="font-size: 24px; color: black;">
+          <span id="min-temp-display">-20</span>° ~ <span id="max-temp-display">50</span>°
+        </div>
+        <!-- 显示天气 -->
+        <div id="chosen_text" style="font-size: 18px; color: black;">
+          晴天
+        </div>
+        <!-- 显示下拉框选择的文本内容 -->
+        <div id="selected-text" style="font-size: 16px; color: black;">
+          <span id="selected-text-content">请选择预设句子</span>
+        </div>
+      </div>
+
+      <!-- 图片 -->
+      <div style="flex: 0 0 auto; margin-left: 10px;min-width: 400px;"> <!-- 增加 margin-left 为 10px -->
+        <%= image_tag 'sun.png', style: 'height: 50px;' ,id: "chosen_img"%>
+      </div>
+
+      <!-- 右侧 div：生成预报按钮 -->
+      <div style="flex: 0 0 auto;">
+        <button id="generate-forecast-button" style="padding: 10px 20px; font-size: 16px; color: #fff; background-color: orange; border: none; border-radius: 5px; cursor: pointer;">
+          生成预报
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+
+<!-- 模态框 -->
+<div id="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
+  <div id="modal-content" style="background-color: white; padding: 30px; border-radius: 12px; width: 300px; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+    <!-- 模态框标题 -->
+    <div style="font-size: 20px; color: #333; font-weight: bold; margin-bottom: 24px; text-align: center;">
+      填写我的预报员信息
+    </div>
+
+    <!-- 摄像头按钮 -->
+    <div style="display: flex; justify-content: center; margin-bottom: 24px;">
+      <button id="camera-button" style="width: 100px; height: 100px; border-radius: 50%; background-color: #f0f0f0; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+        📷
+      </button>
+    </div>
+
+    <!-- 我的名字 -->
+    <div style="font-size: 18px; color: black; margin-bottom: 8px;text-align: center;">
+      我的名字
+    </div>
+    <input type="text" id="name-input" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 20px; font-size: 14px; outline: none; transition: border-color 0.3s ease;">
+
+    <!-- 我的生日 -->
+    <div style="font-size: 18px; color: black; margin-bottom: 8px;text-align: center;">
+      我的生日
+    </div>
+    <input type="date" id="birthday-input" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 24px; font-size: 14px; outline: none; transition: border-color 0.3s ease;">
+
+    <!-- 分享按钮 -->
+    <div style="display: flex; justify-content: center;">
+      <button id="share-button" style="padding: 12px 24px; font-size: 16px; color: #fff; background-color: orange   ; border: none; border-radius: 6px; cursor: pointer; transition: background-color 0.3s ease;">
+        分享
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 登录模态框 -->
+
+<style>
+    .card:hover {
+        background-color: orange;
+    }
+    .card.selected {
+        background-color: orange !important;
+    }
+</style>
+<script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const cardContainer = document.getElementById("card-container");
+        const scrollLeftButton = document.getElementById("scroll-left");
+        const scrollRightButton = document.getElementById("scroll-right");
+        const cards = document.querySelectorAll(".card");
+        const lowTempSelect = document.getElementById('low-temp');
+        const highTempSelect = document.getElementById('high-temp');
+        const temperatureRange = document.getElementById('temperature-range');
+        const chosenImage = document.querySelector('#chosen_img'); // 选中的卡片图片
+        const chosenText = document.querySelector('#chosen_text'); // 选中的卡片文字
+        const loginmodal = document.getElementById('loginModal');
+        loginmodal.style.display = 'flex';
+
+        const firstCard = cards[0];
+        firstCard.classList.add('selected');
+        localStorage.clear();
+
+        // 获取第一张卡片的图片路径和文字内容
+        const firstImageSrc = firstCard.querySelector('img').src;
+        const firstText = firstCard.querySelector('div').textContent;
+
+        // 更新选中的卡片图片
+        chosenImage.src = firstImageSrc;
+
+        // 更新选中的卡片文字
+        chosenText.textContent = firstText;
+
+        // 更新温度区间显示
+        function updateTemperatureRange() {
+            const lowTemp = lowTempSelect.value;
+            const highTemp = highTempSelect.value;
+            const minTemp = document.getElementById("min-temp-display");
+            const maxTemp = document.getElementById("max-temp-display");
+
+            minTemp.textContent = lowTemp;
+            maxTemp.textContent = highTemp;
+
+            if (parseInt(lowTemp) > parseInt(highTemp)) {
+                temperatureRange.textContent = '低温不能高于高温！';
+                temperatureRange.style.color = '#ff4d4d'; // 错误提示颜色
+            } else {
+                temperatureRange.textContent = `当前温度区间：${lowTemp}°C 到 ${highTemp}°C`;
+                temperatureRange.style.color = 'black'; // 正常颜色
+            }
+        }
+
+        // 监听低温选择变化
+        lowTempSelect.addEventListener('change', updateTemperatureRange);
+
+        // 监听高温选择变化
+        highTempSelect.addEventListener('change', updateTemperatureRange);
+
+        //默认选中第一张卡片
+        cards[0].classList.add("selected");
+
+        // 向左滚动
+        scrollLeftButton.addEventListener("click", function() {
+            cardContainer.scrollBy({ left: -200, behavior: "smooth" });
+        });
+
+        // 向右滚动
+        scrollRightButton.addEventListener("click", function() {
+            cardContainer.scrollBy({ left: 200, behavior: "smooth" });
+        });
+
+        // 点击卡片更换背景颜色，并更新选中的卡片图片和文字
+        cards.forEach(card => {
+            card.addEventListener('click', function () {
+                // 移除所有卡片的选中状态
+                cards.forEach(c => c.classList.remove('selected'));
+
+                // 为当前卡片添加选中状态
+                card.classList.add('selected');
+
+                // 获取当前卡片的图片路径
+                const selectedImageSrc = card.querySelector('img').src;
+
+                // 获取当前卡片的文字内容
+                const selectedText = card.querySelector('div').textContent;
+
+                // 更新选中的卡片图片
+                chosenImage.src = selectedImageSrc;
+
+                // 更新选中的卡片文字
+                chosenText.textContent = selectedText;
+            });
+        });
+
+            const generateButton = document.getElementById("generate-forecast-button"); // 获取“生成预报”按钮
+            const modal = document.getElementById("modal"); // 获取模态框
+            const cameraButton = document.getElementById("camera-button"); // 获取摄像头按钮
+            const shareButton = document.getElementById("share-button"); // 获取分享按钮
+
+            // 点击“生成预报”按钮，显示模态框
+            generateButton.addEventListener("click", function() {
+                modal.style.display = "flex";
+            });
+
+            // 点击模态框外部，关闭模态框
+            modal.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            });
+
+        // 点击摄像头按钮，触发文件上传
+        cameraButton.addEventListener("click", function() {
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = "image/*";
+            fileInput.onchange = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // 将图片数据保存到 localStorage
+                        localStorage.setItem("uploadedImage", e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            fileInput.click();
+        });
+
+        // 点击分享按钮，跳转到分享页面
+        shareButton.addEventListener("click", function() {
+            const name = document.getElementById("name-input").value;
+            const birthday = document.getElementById("birthday-input").value;
+            const chosen_date = document.getElementById("date").value;
+            const low_temp = document.getElementById("low-temp").value;
+            const high_temp = document.getElementById("high-temp").value;
+            const selected_text_content = document.getElementById("selected-text-content").textContent;
+            const chosen_img = document.getElementById("chosen_img").src;
+            const chosen_text = document.getElementById("chosen_text").textContent;
+
+            // 跳转到分享页面，并传递参数
+            window.location.href = "<%= share_path %>?name=" + encodeURIComponent(name) + "&birthday=" + encodeURIComponent(birthday)+ "&chosen_date=" + encodeURIComponent(chosen_date)+ "&low_temp=" + encodeURIComponent(low_temp)+ "&high_temp=" + encodeURIComponent(high_temp)+ "&selected_text_content=" + encodeURIComponent(selected_text_content)+ "&chosen_img=" + encodeURIComponent(chosen_img)+ "&chosen_text=" + encodeURIComponent(chosen_text);
+        });
+    });
+    // 关闭模态框
+    document.getElementById('closeBtn').addEventListener('click', function () {
+        const loginModal = document.getElementById('loginModal');
+        loginModal.style.display = 'none';
+    });
+
+    // 处理登录表单提交
+    document.getElementById('loginForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const loginMessage = document.getElementById('loginMessage');
+
+        // 清空之前的提示
+        loginMessage.innerHTML = '';
+
+        // 简单验证（实际项目中需结合后端验证）
+        if (username === 'admin' && password === '1') {
+            // 登录成功
+            loginMessage.innerHTML = `
+          <div class="checkmark">&#10004;</div>
+          <div class="success-message">登录成功！</div>
+        `;
+            // 1.5 秒后关闭模态框
+            setTimeout(() => {
+                const loginModal = document.getElementById('loginModal');
+                loginModal.style.display = 'none';
+            }, 1000);
+        } else {
+            // 登录失败
+            loginMessage.innerHTML = `<div class="error-message">登录失败，请检查用户名或密码！</div>`;
+        }
+    });
+
+    // 获取相关元素
+    const selectElement = document.getElementById('rich-text-select');
+    const textareaElement = document.getElementById('rich-text-area');
+    const editButton = document.getElementById('edit-button');
+    const selectedTextContent = document.getElementById('selected-text-content');
+
+    // 更新 selected-text-content 的内容
+    function updateSelectedTextContent() {
+        if (textareaElement.style.display === 'none') {
+            // 如果富文本编辑器隐藏，显示 select 的内容
+            selectedTextContent.textContent = selectElement.value;
+        } else {
+            // 如果富文本编辑器显示，显示 textarea 的内容
+            selectedTextContent.textContent = textareaElement.value.trim() || selectElement.value;
+        }
+    }
+
+    // 监听 select 变化
+    selectElement.addEventListener('change', function () {
+        updateSelectedTextContent();
+    });
+
+    // 监听 textarea 输入
+    textareaElement.addEventListener('input', function () {
+        updateSelectedTextContent();
+    });
+
+    // 切换编辑状态
+    function toggleEditor() {
+        if (textareaElement.style.display === 'none') {
+            // 切换到富文本编辑模式
+            selectElement.style.display = 'none';
+            textareaElement.style.display = 'block';
+            editButton.textContent = '完成';
+            textareaElement.focus(); // 自动聚焦到富文本编辑器
+        } else {
+            // 切换回选择框模式
+            const customText = textareaElement.value.trim();
+            if (customText) {
+                // 将富文本内容添加到选择框中
+                const newOption = document.createElement('option');
+                newOption.value = customText;
+                newOption.textContent = customText;
+                selectElement.appendChild(newOption);
+                selectElement.value = customText; // 选中新添加的选项
+            }
+            textareaElement.style.display = 'none';
+            selectElement.style.display = 'block';
+            editButton.textContent = '自己写';
+        }
+        // 更新显示内容
+        updateSelectedTextContent();
+    }
+
+    // 初始化显示内容
+    updateSelectedTextContent();
+</script>

@@ -1,0 +1,74 @@
+<style>
+  #card-left{
+      background-image: url('<%= asset_path('user-share.jpeg') %>');
+      background-size: cover; /* 图片按比例缩放，覆盖整个模态框 */
+      background-position: center; /* 图片居中显示 */
+      background-repeat: no-repeat; /* 防止图片重复 */
+  }
+</style>
+<div style="background-color: transparent; height: 97vh;  display: flex; justify-content: center; align-items: center;">
+  <!-- 卡片 -->
+  <div id="card" style="background-color: #f0f0f0; border-radius: 15px; height: calc(100vh - 20px); width: 80%; max-width: 800px; display: flex; background-size: cover; background-position: center;">
+    <!-- 左侧内容区域 -->
+    <div id="card-left" style="flex: 1; padding: 20px;border-radius: 30px;">
+      <h1 style="font-size: 24px; color: #333; text-align: center;">我是小小预报员</h1>
+      <p style="font-size: 16px; color: #666; text-align: center;">今天我在上海气象博物馆预报天气</p>
+
+      <!-- 圆形头像 -->
+      <div style="display: flex; justify-content: center; margin: 20px 0;">
+        <div style="width: 100px; height: 100px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center;">
+          <%= image_tag 'user-girl.png', style: 'width: 80px; height: 80px; border-radius: 50%;' %>
+        </div>
+      </div>
+
+      <!-- 用户姓名 -->
+      <p style="font-size: 16px; color: #333; text-align: center;"><%= @name %></p>
+
+      <div id="A" style="display: flex; align-items: center;">
+        <!-- 我的预报 -->
+        <div id="B" style="margin-top: 20px;width: 50%;">
+          <h2 style="font-size: 20px; color: #333;">我的预报</h2>
+          <p style="font-size: 16px; color: black;"><%= @chosen_date %></p>
+          <p style="font-size: 16px; color: black;"><%= @low_temp %>℃～<%= @high_temp %>℃</p>
+          <p style="font-size: 16px; color: black;"><%= @chosen_text %></p>
+          <p style="font-size: 16px; color: black;"><%= @selected_text_content %></p>
+        </div>
+        <!-- 所选天气 -->
+        <div id="C" style="display: flex; align-items: center;width: 50%;">
+          <!-- 图片 -->
+          <div id="D" style="margin-left: 10px;">
+            <%= image_tag 'sun.png', style: 'height: 50px;', id: "chosen_img" %>
+          </div>
+        </div>
+      </div>
+
+      <!-- 生日天气 -->
+      <div style="margin-top: 20px;">
+        <h2 style="font-size: 20px; color: #333;">生日天气</h2>
+        <p style="font-size: 16px; color: black;"><%= @birthday %></p>
+        <p style="font-size: 16px; color: black;">超出数据范围啦，但是一定是个好天气。</p>
+      </div>
+    </div>
+
+    <!-- 右侧二维码区域 -->
+    <div style="background-color:white;width: 200px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <!-- 二维码图片 -->
+      <%= image_tag 'shareQRcode.png', style: 'width: 100px; height: 100px; margin-bottom: 20px;' %>
+
+      <!-- 再试一次按钮 -->
+      <%= link_to '再试一次', root_path, style: 'padding: 10px 20px; font-size: 16px; color: #fff; background-color: orange; border: none; border-radius: 5px; text-decoration: none; cursor: pointer;' %>
+    </div>
+  </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const card = document.getElementById("card");
+        const uploadedImage = localStorage.getItem("uploadedImage");
+
+        // 如果存在上传的图片，设置为卡片背景
+        if (uploadedImage) {
+            card.style.backgroundImage = `url(${uploadedImage})`;
+        }
+    });
+</script>
