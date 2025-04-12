@@ -10,10 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_03_18_141518) do
+ActiveRecord::Schema[7.2].define(version: 2025_04_12_173736) do
   create_table "posts", charset: "utf8mb4", force: :cascade do |t|
     t.string "title"
     t.text "body"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "weather_histories", charset: "utf8mb4", force: :cascade do |t|
+    t.integer "year"
+    t.integer "month"
+    t.integer "day"
+    t.float "avg_temperature"
+    t.float "max_temperature"
+    t.float "min_temperature"
+    t.float "precipitation"
+    t.float "avg_wind_speed"
+    t.integer "avg_relative_humidity"
+    t.string "weather_summary"
+    t.string "rain_volume"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

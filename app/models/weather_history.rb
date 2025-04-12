@@ -1,0 +1,2 @@
+class WeatherHistory < ApplicationRecord
+end

@@ -113,6 +113,26 @@
         color: #28a745;
         margin-top: 1rem;
     }
+    /* 头像淡入动画 */
+    .fade-in {
+        animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    /* 上传中状态样式 */
+    .uploading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* 删除按钮 hover 效果 */
+    #delete-avatar:hover {
+        background-color: darkred;
+    }
 </style>
 
 <!-- 登录模态框 -->
@@ -332,12 +352,33 @@
       填写我的预报员信息
     </div>
 
-    <!-- 摄像头按钮 -->
-    <div style="display: flex; justify-content: center; margin-bottom: 24px;">
+    <!-- 头像上传区域 -->
+    <div style="display: flex; justify-content: center; margin-bottom: 24px; position: relative;">
+      <img id="avatar-preview" src="" alt="头像预览" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: none; cursor: pointer;"/>
+
+      <!-- 删除按钮 -->
+      <div id="delete-avatar" title="删除头像" style="position: absolute; top: -5px; right: calc(50% - 45px); background-color: red; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 14px; text-align: center; line-height: 20px; cursor: pointer; display: none;">
+        ×
+      </div>
+
+      <!-- 相机按钮 -->
       <button id="camera-button" style="width: 100px; height: 100px; border-radius: 50%; background-color: #f0f0f0; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px;">
         📷
       </button>
     </div>
+
+    <!-- 背景图上传区域 -->
+    <div style="margin-bottom: 24px;">
+      <div style="display: flex; justify-content: center;">
+        <button id="background-upload-button" style="padding: 10px 16px; font-size: 14px; background-color: #e0e0e0; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+          <span id="background-upload-text">上传背景图</span>
+          <span id="background-upload-check" style="display: none; font-size: 16px;">✅</span>
+        </button>
+      </div>
+    </div>
+
+
+
 
     <!-- 我的名字 -->
     <div style="font-size: 18px; color: black; margin-bottom: 8px;text-align: center;">
@@ -462,8 +503,10 @@
 
             const generateButton = document.getElementById("generate-forecast-button"); // 获取“生成预报”按钮
             const modal = document.getElementById("modal"); // 获取模态框
-            const cameraButton = document.getElementById("camera-button"); // 获取摄像头按钮
             const shareButton = document.getElementById("share-button"); // 获取分享按钮
+            const cameraButton = document.getElementById("camera-button");
+            const avatarPreview = document.getElementById("avatar-preview");
+            const deleteAvatar = document.getElementById("delete-avatar");
 
             // 点击“生成预报”按钮，显示模态框
             generateButton.addEventListener("click", function() {
@@ -477,24 +520,114 @@
                 }
             });
 
-        // 点击摄像头按钮，触发文件上传
-        cameraButton.addEventListener("click", function() {
+        function triggerUpload() {
             const fileInput = document.createElement("input");
             fileInput.type = "file";
             fileInput.accept = "image/*";
-            fileInput.onchange = function(event) {
+
+            fileInput.onchange = function (event) {
                 const file = event.target.files[0];
                 if (file) {
+                    // 上传中状态：按钮变灰并禁用
+                    cameraButton.textContent = "上传中…";
+                    cameraButton.classList.add("uploading");
+
                     const reader = new FileReader();
-                    reader.onload = function(e) {
-                        // 将图片数据保存到 localStorage
-                        localStorage.setItem("uploadedImage", e.target.result);
+                    reader.onload = function (e) {
+                        const imageData = e.target.result;
+
+                        // 展示头像
+                        avatarPreview.src = imageData;
+                        avatarPreview.style.display = "block";
+                        avatarPreview.classList.add("fade-in");
+
+                        // 显示删除按钮 & 隐藏相机按钮
+                        deleteAvatar.style.display = "block";
+                        cameraButton.style.display = "none";
+
+                        // 存入缓存
+                        localStorage.setItem("uploadedImage", imageData);
+
+                        // 恢复按钮状态
+                        cameraButton.textContent = "📷";
+                        cameraButton.classList.remove("uploading");
                     };
                     reader.readAsDataURL(file);
                 }
             };
+
+            fileInput.click();
+        }
+
+        const backgroundUploadButton = document.getElementById("background-upload-button");
+        const backgroundUploadText = document.getElementById("background-upload-text");
+        const backgroundUploadCheck = document.getElementById("background-upload-check");
+
+        backgroundUploadButton.addEventListener("click", function () {
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = "image/*";
+
+            fileInput.onchange = function (event) {
+                const file = event.target.files[0];
+                if (file) {
+                    backgroundUploadText.textContent = "上传中…";
+                    backgroundUploadButton.style.opacity = "0.6";
+                    backgroundUploadButton.style.pointerEvents = "none";
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const backgroundImageData = e.target.result;
+
+                        localStorage.setItem("uploadedBackgroundImage", backgroundImageData);
+
+                        // 设置按钮为上传完成状态
+                        backgroundUploadText.textContent = "已上传";
+                        backgroundUploadCheck.style.display = "inline";
+                        backgroundUploadButton.style.backgroundColor = "#4CAF50"; // 成功绿色
+                        backgroundUploadButton.style.color = "#fff";
+                        backgroundUploadButton.style.opacity = "1";
+                        backgroundUploadButton.style.pointerEvents = "auto";
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
             fileInput.click();
         });
+
+
+
+// 事件绑定
+        cameraButton.addEventListener("click", triggerUpload);
+        avatarPreview.addEventListener("click", triggerUpload);
+
+        deleteAvatar.addEventListener("click", function () {
+            avatarPreview.src = "";
+            avatarPreview.style.display = "none";
+            cameraButton.style.display = "flex";
+            deleteAvatar.style.display = "none";
+            localStorage.removeItem("uploadedImage");
+        });
+
+// 初始化模态框时载入头像
+        function showModal() {
+            const modal = document.getElementById("modal");
+            modal.style.display = "flex";
+
+            const savedImage = localStorage.getItem("uploadedImage");
+            if (savedImage) {
+                avatarPreview.src = savedImage;
+                avatarPreview.style.display = "block";
+                avatarPreview.classList.add("fade-in");
+                deleteAvatar.style.display = "block";
+                cameraButton.style.display = "none";
+            } else {
+                avatarPreview.style.display = "none";
+                deleteAvatar.style.display = "none";
+                cameraButton.style.display = "flex";
+            }
+        }
 
         // 点击分享按钮，跳转到分享页面
         shareButton.addEventListener("click", function() {
