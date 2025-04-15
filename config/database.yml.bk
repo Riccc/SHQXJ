@@ -1,20 +1,24 @@
+# 定义 default 锚点
 default: &default
   adapter: mysql2
   encoding: utf8mb4
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  username: <%= ENV["DATABASE_USERNAME"] || "root" %>
-  password: <%= ENV["DATABASE_PASSWORD"] || "root" %>
-  host: <%= ENV["DATABASE_HOST"] || "localhost" %>
+  username: root
+  password: root
+  host: localhost
   port: 3306
 
+# 开发环境
 development:
   <<: *default
   database: your_app_development
 
+# 测试环境
 test:
   <<: *default
   database: your_app_test
 
+# 生产环境
 production:
   <<: *default
   database: your_app_production

@@ -1,69 +1,53 @@
-# syntax = docker/dockerfile:1
+FROM ruby:3.1.4
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t my-app .
-# docker run -d -p 80:80 -p 443:443 --name my-app -e RAILS_MASTER_KEY=<value from config/master.key> my-app
+# 检查 /etc/apt 目录下的文件
+RUN ls /etc/apt/
 
-# Make sure RUBY_VERSION matches the Ruby version in .ruby-version
-ARG RUBY_VERSION=3.1.0
-FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
+# 创建 /etc/apt/sources.list 文件
+RUN echo "deb http://deb.debian.org/debian bookworm main" > /etc/apt/sources.list
 
-# Rails app lives here
-WORKDIR /rails
+# 更换为清华镜像源并清理缓存
+RUN sed -i 's|http://deb.debian.org/debian|https://mirrors.tuna.tsinghua.edu.cn/debian|g' /etc/apt/sources.list && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
 
-# Install base packages
+# 安装系统依赖与证书
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips sqlite3 && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    libmariadb-dev-compat \
+    libmariadb-dev \
+    nodejs \
+    curl \
+    ca-certificates && \
+    update-ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set production environment
-ENV RAILS_ENV="production" \
-    BUNDLE_DEPLOYMENT="1" \
-    BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development"
+# 安装缺少的 GPG 密钥
+#RUN curl -sSL https://rvm.io/mpapis.asc | gpg --import - && \
+#    curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
 
-# Throw-away build stage to reduce size of final image
-FROM base AS build
+# 安装 RVM（Ruby Version Manager）
+#RUN curl -sSL https://get.rvm.io | bash -s stable
 
-# Install packages needed to build gems
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git pkg-config && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+# 使用 RVM 安装 Ruby
+#RUN bash -l -c "rvm install ruby-3.1.4"
 
-# Install application gems
+# 设置 Ruby 版本
+#RUN bash -l -c "rvm use ruby-3.1.4 --default"
+
+# 设置 RubyGems 使用 Ruby-China 镜像
+RUN gem install bundler
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制 Gemfile 并安装 gems
 COPY Gemfile Gemfile.lock ./
-RUN bundle install && \
-    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
-    bundle exec bootsnap precompile --gemfile
+RUN bundle install
 
-# Copy application code
+# 复制项目文件
 COPY . .
 
-# Precompile bootsnap code for faster boot times
-RUN bundle exec bootsnap precompile app/ lib/
-
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
-
-
-
-
-# Final stage for app image
-FROM base
-
-# Copy built artifacts: gems, application
-COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
-COPY --from=build /rails /rails
-
-# Run and own only the runtime files as a non-root user for security
-RUN groupadd --system --gid 1000 rails && \
-    useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
-    chown -R rails:rails db log storage tmp
-USER 1000:1000
-
-# Entrypoint prepares the database.
-ENTRYPOINT ["/rails/bin/docker-entrypoint"]
-
-# Start the server by default, this can be overwritten at runtime
-EXPOSE 3000
-CMD ["./bin/rails", "server"]
+# 启动脚本
+CMD ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails s -b 0.0.0.0"]
