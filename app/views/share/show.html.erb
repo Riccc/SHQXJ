@@ -33,13 +33,13 @@
         height: 100%;
     }
 
-    #card-left::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: rgba(255, 255, 255, 0.6);
-        z-index: 0;
-    }
+    /*#card-left::before {*/
+    /*    content: '';*/
+    /*    position: absolute;*/
+    /*    inset: 0;*/
+    /*    background: rgba(255, 255, 255, 0.6);*/
+    /*    z-index: 0;*/
+    /*}*/
 
     #card-left > * {
         position: relative;
@@ -240,11 +240,13 @@
         // 设置背景图
         if (uploadedBackgroundImage && cardLeft) {
             cardLeft.style.backgroundImage = `url(${uploadedBackgroundImage})`;
-            cardLeft.style.backgroundSize = "cover";
-            cardLeft.style.backgroundPosition = "center";
+            cardLeft.style.backgroundRepeat = 'no-repeat';  // 防止平铺
+            cardLeft.style.backgroundPosition = 'center';
+            cardLeft.style.backgroundColor = 'white';  // 添加背景色以防图片较小
         } else {
-            // 设置默认背景
+            // 设置默认背景（保持原样）
             cardLeft.style.backgroundImage = "url('<%= asset_path('user-share.jpeg') %>')";
+            cardLeft.style.backgroundSize = "cover";  // 默认背景仍保持cover
         }
     });
 </script>

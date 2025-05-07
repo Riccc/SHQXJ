@@ -519,44 +519,293 @@
                     modal.style.display = "none";
                 }
             });
+        //头像上传
+        // function triggerUpload() {
+        //     const fileInput = document.createElement("input");
+        //     fileInput.type = "file";
+        //     fileInput.accept = "image/*";
+        //
+        //     fileInput.onchange = function (event) {
+        //         const file = event.target.files[0];
+        //         if (file) {
+        //             // 上传中状态：按钮变灰并禁用
+        //             cameraButton.textContent = "上传中…";
+        //             cameraButton.classList.add("uploading");
+        //
+        //             const reader = new FileReader();
+        //             reader.onload = function (e) {
+        //                 const imageData = e.target.result;
+        //
+        //                 // 展示头像
+        //                 avatarPreview.src = imageData;
+        //                 avatarPreview.style.display = "block";
+        //                 avatarPreview.classList.add("fade-in");
+        //
+        //                 // 显示删除按钮 & 隐藏相机按钮
+        //                 deleteAvatar.style.display = "block";
+        //                 cameraButton.style.display = "none";
+        //
+        //                 // 存入缓存
+        //                 localStorage.setItem("uploadedImage", imageData);
+        //
+        //                 // 恢复按钮状态
+        //                 cameraButton.textContent = "📷";
+        //                 cameraButton.classList.remove("uploading");
+        //             };
+        //             reader.readAsDataURL(file);
+        //         }
+        //     };
+        //
+        //     fileInput.click();
+        // }
+        async function triggerUpload() {
+            // 创建选择菜单
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            modal.style.display = 'flex';
+            modal.style.flexDirection = 'column';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
 
-        function triggerUpload() {
-            const fileInput = document.createElement("input");
-            fileInput.type = "file";
-            fileInput.accept = "image/*";
+            // 创建选项按钮
+            const fileOption = createOptionButton('从相册选择', '#4CAF50');
+            const cameraOption = createOptionButton('拍照上传', '#2196F3');
+            const cancelOption = createOptionButton('取消', '#f44336');
 
-            fileInput.onchange = function (event) {
-                const file = event.target.files[0];
-                if (file) {
-                    // 上传中状态：按钮变灰并禁用
-                    cameraButton.textContent = "上传中…";
-                    cameraButton.classList.add("uploading");
+            modal.appendChild(fileOption);
+            modal.appendChild(cameraOption);
+            modal.appendChild(cancelOption);
+            document.body.appendChild(modal);
 
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const imageData = e.target.result;
+            // 处理选择
+            return new Promise((resolve) => {
+                // 从相册选择
+                fileOption.onclick = () => {
+                    document.body.removeChild(modal);
+                    const fileInput = document.createElement("input");
+                    fileInput.type = "file";
+                    fileInput.accept = "image/*";
 
-                        // 展示头像
-                        avatarPreview.src = imageData;
-                        avatarPreview.style.display = "block";
-                        avatarPreview.classList.add("fade-in");
-
-                        // 显示删除按钮 & 隐藏相机按钮
-                        deleteAvatar.style.display = "block";
-                        cameraButton.style.display = "none";
-
-                        // 存入缓存
-                        localStorage.setItem("uploadedImage", imageData);
-
-                        // 恢复按钮状态
-                        cameraButton.textContent = "📷";
-                        cameraButton.classList.remove("uploading");
+                    fileInput.onchange = function (event) {
+                        handleImageUpload(event.target.files[0]);
+                        resolve();
                     };
-                    reader.readAsDataURL(file);
+                    fileInput.click();
+                };
+
+                // 拍照上传
+                cameraOption.onclick = async () => {
+                    document.body.removeChild(modal);
+                    try {
+                        // 1. 首先检查是否支持媒体设备
+                        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                            throw new Error('您的浏览器不支持摄像头访问');
+                        }
+
+                        // 2. 请求摄像头权限
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: 'user', // 前置摄像头
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 }
+                            }
+                        }).catch(err => {
+                            // 3. 处理权限拒绝情况
+                            if (err.name === 'NotAllowedError') {
+                                showPermissionAlert('请允许访问摄像头权限');
+                            } else if (err.name === 'NotFoundError') {
+                                showPermissionAlert('未找到可用的摄像头');
+                            }
+                            throw err;
+                        });
+
+                        // 创建拍照界面
+                        const cameraView = document.createElement('div');
+                        cameraView.style.position = 'fixed';
+                        cameraView.style.top = '0';
+                        cameraView.style.left = '0';
+                        cameraView.style.width = '100%';
+                        cameraView.style.height = '100%';
+                        cameraView.style.backgroundColor = 'rgba(0,0,0,0.9)';
+                        cameraView.style.zIndex = '1000';
+
+                        const video = document.createElement('video');
+                        video.style.width = '100%';
+                        video.style.maxHeight = '80vh';
+                        video.style.objectFit = 'cover';
+                        video.autoplay = true;
+                        video.srcObject = stream;
+
+                        const buttonContainer = document.createElement('div');
+                        buttonContainer.style.position = 'fixed';
+                        buttonContainer.style.bottom = '20px';
+                        buttonContainer.style.left = '0';
+                        buttonContainer.style.width = '100%';
+                        buttonContainer.style.display = 'flex';
+                        buttonContainer.style.justifyContent = 'center';
+                        buttonContainer.style.gap = '20px';
+
+                        const captureBtn = document.createElement('button');
+                        captureBtn.innerHTML = '拍照';
+                        captureBtn.style.padding = '15px 30px';
+                        captureBtn.style.backgroundColor = '#4CAF50';
+                        captureBtn.style.color = 'white';
+                        captureBtn.style.border = 'none';
+                        captureBtn.style.borderRadius = '50px';
+                        captureBtn.style.fontSize = '16px';
+                        captureBtn.style.cursor = 'pointer';
+
+                        const cancelBtn = document.createElement('button');
+                        cancelBtn.innerHTML = '取消';
+                        cancelBtn.style.padding = '15px 30px';
+                        cancelBtn.style.backgroundColor = '#f44336';
+                        cancelBtn.style.color = 'white';
+                        cancelBtn.style.border = 'none';
+                        cancelBtn.style.borderRadius = '50px';
+                        cancelBtn.style.fontSize = '16px';
+                        cancelBtn.style.cursor = 'pointer';
+
+                        buttonContainer.appendChild(captureBtn);
+                        buttonContainer.appendChild(cancelBtn);
+                        cameraView.appendChild(video);
+                        cameraView.appendChild(buttonContainer);
+                        document.body.appendChild(cameraView);
+
+                        // 拍照处理
+                        captureBtn.onclick = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            const ctx = canvas.getContext('2d');
+
+                            // 镜像反转（前置摄像头）
+                            ctx.translate(canvas.width, 0);
+                            ctx.scale(-1, 1);
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                            canvas.toBlob((blob) => {
+                                handleImageUpload(new File([blob], 'avatar.jpg', { type: 'image/jpeg' }));
+                                stream.getTracks().forEach(track => track.stop());
+                                document.body.removeChild(cameraView);
+                                resolve();
+                            }, 'image/jpeg', 0.9);
+                        };
+
+                        // 取消拍照
+                        cancelBtn.onclick = () => {
+                            stream.getTracks().forEach(track => track.stop());
+                            document.body.removeChild(cameraView);
+                            resolve();
+                        };
+                    } catch (error) {
+                        console.error('摄像头错误:', error);
+                        // 回退到文件选择
+                        const fileInput = document.createElement("input");
+                        fileInput.type = "file";
+                        fileInput.accept = "image/*";
+                        fileInput.onchange = function (event) {
+                            handleImageUpload(event.target.files[0]);
+                            resolve();
+                        };
+                        fileInput.click();
+                    }
+                };
+
+                // 取消选择
+                cancelOption.onclick = () => {
+                    document.body.removeChild(modal);
+                    resolve();
+                };
+            });
+
+            function createOptionButton(text, bgColor) {
+                const btn = document.createElement('button');
+                btn.textContent = text;
+                btn.style.padding = '12px 24px';
+                btn.style.margin = '8px';
+                btn.style.border = 'none';
+                btn.style.borderRadius = '8px';
+                btn.style.backgroundColor = bgColor;
+                btn.style.color = 'white';
+                btn.style.fontSize = '16px';
+                btn.style.cursor = 'pointer';
+                btn.style.width = '200px';
+                btn.style.transition = 'all 0.3s';
+
+                btn.onmouseenter = () => {
+                    btn.style.opacity = '0.9';
+                    btn.style.transform = 'translateY(-2px)';
+                };
+                btn.onmouseleave = () => {
+                    btn.style.opacity = '1';
+                    btn.style.transform = 'none';
+                };
+
+                return btn;
+            }
+
+            function showPermissionAlert(message) {
+                alert(`${message}\n\n请按以下步骤操作：\n1. 点击地址栏左侧的锁形图标\n2. 选择"网站设置"\n3. 找到"摄像头"选项\n4. 改为"允许"`);
+            }
+        }
+
+        function handleImageUpload(file) {
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const imageData = e.target.result;
+
+                // 存入缓存
+                localStorage.setItem("uploadedImage", imageData);
+
+                // 更新头像显示
+                const shareAvatar = document.getElementById("share-avatar");
+                if (shareAvatar) {
+                    shareAvatar.src = imageData;
+                    shareAvatar.style.display = "block";
                 }
             };
+            reader.readAsDataURL(file);
+        }
 
-            fileInput.click();
+// 保持原有的 handleImageUpload 函数不变
+
+// 提取出来的通用图片处理函数
+        function handleImageUpload(file) {
+            if (!file) return;
+
+            // 上传中状态：按钮变灰并禁用
+            cameraButton.textContent = "上传中…";
+            cameraButton.classList.add("uploading");
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const imageData = e.target.result;
+
+                // 展示头像
+                avatarPreview.src = imageData;
+                avatarPreview.style.display = "block";
+                avatarPreview.classList.add("fade-in");
+
+                // 显示删除按钮 & 隐藏相机按钮
+                deleteAvatar.style.display = "block";
+                cameraButton.style.display = "none";
+
+                // 存入缓存
+                localStorage.setItem("uploadedImage", imageData);
+
+                // 恢复按钮状态
+                cameraButton.textContent = "📷";
+                cameraButton.classList.remove("uploading");
+            };
+            reader.readAsDataURL(file);
         }
 
         const backgroundUploadButton = document.getElementById("background-upload-button");
