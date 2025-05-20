@@ -1,252 +1,259 @@
-<style>
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>我的天气预报</title>
+  <style>
     body {
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-        background-color: #f9f9f9;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
     }
 
-    #card {
-        background-color: white;
-        border-radius: 20px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        height: 100vh;
-        width: 80%;
-        max-width: 1000px;
-        display: flex;
-        background-size: cover;
-        background-position: center;
+    /* 修改主容器样式 */
+    #main-container {
+      display: flex;
+      justify-content: space-between;
+      padding: 20px;
+      height: calc(100vh - 40px); /* 限制为视口高度减去padding */
+      box-sizing: border-box; /* 包含padding在高度计算内 */
     }
 
-    #card-left {
-        position: relative;
-        flex: 1;
-        padding: 32px 24px;
-        border-radius: 30px;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        display: flex;
-        flex-direction: column; /* 垂直布局 */
-        justify-content: center; /* 内容垂直居中 */
-        align-items: center; /* 内容水平居中 */
-        height: 100%;
+    /* 恢复背景图圆角并调整容器 */
+    .container-16-9, .container-4-3 {
+      position: relative;
+      background-size: cover; /* 改回cover保持填充 */
+      background-position: center;
+      border-radius: 15px; /* 确保圆角存在 */
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
     }
 
-    /*#card-left::before {*/
-    /*    content: '';*/
-    /*    position: absolute;*/
-    /*    inset: 0;*/
-    /*    background: rgba(255, 255, 255, 0.6);*/
-    /*    z-index: 0;*/
-    /*}*/
-
-    #card-left > * {
-        position: relative;
-        z-index: 1;
+    /* 移除之前的高度比例控制 */
+    .container-16-9::before,
+    .container-4-3::before {
+      content: none; /* 移除伪元素的高度控制 */
     }
 
-    #card-left h1 {
-        font-size: 28px;
-        font-weight: bold;
-        color: #222;
-        text-align: center;
-        margin-bottom: 8px;
+    .container-4-3::before {
+      padding-top: 75%; /* 4:3 */
     }
 
-    #card-left h2 {
-        font-size: 20px;
-        color: #333;
-        margin: 16px 0 8px;
+    /* 修改卡片容器样式 */
+    #card-container {
+      flex: 1;
+      margin-right: 20px;
+      height: 100%; /* 继承父容器高度 */
     }
 
-    #card-left p {
-        font-size: 15px;
-        color: #444;
-        line-height: 1.5;
-        text-align: center;
-        margin-bottom: 6px;
+    #side-content {
+      width: 25%;
+      background: #e0e0e0;
+      padding: 20px;
+      border-radius: 10px;
     }
 
-    .avatar-wrapper {
-        display: flex;
-        justify-content: center;
-        margin: 20px 0;
+    /* 头像 */
+    #avatar {
+      position: absolute;
+      top: 25%;  /* 下移头像位置 */
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      border: 4px solid white;
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      z-index: 2;
     }
 
-    .avatar {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        object-fit: cover;
+    /* 名字 */
+    #name-label {
+      position: absolute;
+      top: calc(25% + 120px + 15px);  /* 基于头像位置计算 */
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.2rem;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 4px 10px;
+      border-radius: 8px;
+      z-index: 2;
     }
 
-    #A {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        justify-content: space-between;
-        width: 100%;
+    /* 顶部文字区域 */
+    #text-container {
+      position: absolute;
+      top: 5%;  /* 上移文字区域 */
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      width: 90%;
+      z-index: 2;
+      margin-bottom: 20px; /* 增加下边距 */
     }
 
-    #B, #C {
-        flex: 1;
-        min-width: 45%;
-        text-align: center;
+    #line1, #line2 {
+      margin: 0;
+      font-weight: bold;
+      color: #333;
     }
 
-    #D img {
-        height: 50px;
+    #line1 {
+      font-size: 2rem;
     }
 
-    .qr-section {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background: white;
-        width: 220px;
-        padding: 24px;
-        border-left: 1px solid #eee;
-        height: 100%;
-        padding-top: 50px; /* 给二维码区域添加顶部间距 */
+    #line2 {
+      font-size: 1.4rem;
+      white-space: nowrap;
     }
 
-    .qr-section img {
-        width: 100px;
-        height: 100px;
-        margin-bottom: 16px;
-        border-radius: 10px;
+    /* 新增的CSS样式 */
+#info-container {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  height: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+.info-column {
+  flex: 1;
+  padding: 0 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; /* 新增：交叉轴居中对齐 */
+}
+
+/* 移除原来的左右对齐设置 */
+.info-column:first-child,
+.info-column:last-child {
+  text-align: center; /* 统一设置为居中对齐 */
+}
+.image-column {
+  flex: 0.8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#info-container h3 {
+  margin: 0 0 5px;
+  font-size: 0.95rem;
+}
+
+/* 调整段落样式确保居中效果 */
+#info-container p {
+  margin: 2px 0;
+  white-space: normal;
+  width: 100%; /* 确保文本块宽度满容器 */
+  text-align: center; /* 再次确认居中对齐 */
+}
+
+    /* 调整分割线 */
+    #info-container hr {
+      margin: 6px 0;
     }
 
-    .retry-button {
-        padding: 12px 20px;
-        background: #FF8C00;
-        color: white;
-        font-size: 16px;
-        border-radius: 12px;
-        text-decoration: none;
-        transition: background 0.3s;
-        font-weight: bold;
-        width: 100%;
-        max-width: 200px;
-        text-align: center;
-        margin-top: 20px;
+    /* 天气信息段落特殊处理 */
+    #info-container p:nth-child(3),
+    #info-container p:nth-child(5) {
+      font-weight: bold;
     }
+  </style>
+</head>
+<body>
+  <div id="main-container">
+    <div id="card-container">
+      <div id="card" class="container-16-9">
+        <img id="avatar" />
+        <div id="name-label"><%= @name %></div>
 
-    .retry-button:hover {
-        background: #e67e00;
-    }
-
-</style>
-
-<div style="background-color: transparent; height: 97vh; display: flex; justify-content: center; align-items: center;">
-  <div id="card" style="display: flex; justify-content: space-between; align-items: flex-start;">
-    <!-- 卡片左侧 -->
-    <div id="card-left" style="background-image: url('<%= asset_path('user-share.jpeg') %>');">
-      <h1>我是小小预报员</h1>
-      <p>今天我在上海气象博物馆预报天气</p>
-
-      <div class="avatar-wrapper">
-        <img id="share-avatar" src="" alt="头像" style="width: 80px; height: 80px; border-radius: 50%;" />
-      </div>
-
-      <h2 style="font-size: 30px; margin-bottom: 12px;"><strong><%= @name %></strong></h2>
-
-      <div style="display: flex; flex-direction: column; gap: 30px; width: 100%;">
-
-        <!-- 我的预报卡片 -->
-        <div style="width: 90%; display: flex; background-color: rgba(240, 248, 255, 0.8); padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-          <div style="flex: 2;">
-            <h2 style="font-size: 20px; margin-bottom: 12px;">🌤 我的预报</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-              <div>日期：<%= @chosen_date %></div>
-              <div>气温：<%= @low_temp %>℃～<%= @high_temp %>℃</div>
-              <div>天气描述：<%= @chosen_text %></div>
-              <div>个性文案：<%= @selected_text_content %></div>
-            </div>
-          </div>
-          <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
-            <%= image_tag @chosen_img, id: 'chosen_img', style: "max-width: 100px;" %>
-          </div>
+        <div id="text-container">
+          <p id="line1">我是小小预报员</p>
+          <p id="line2">今天我在上海气象博物馆预报天气</p>
         </div>
 
-        <!-- 生日天气卡片 -->
-        <div style="width: 90%; display: flex; background-color: rgba(255, 250, 240, 0.8); border-radius: 16px; padding: 20px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-          <div style="flex: 2;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-              <h2 style="font-size: 20px;">🎂 生日天气</h2>
-              <p style="font-size: 16px; color: #333;"><strong><%= @birthday %></strong></p>
-            </div>
-
-            <% if @birthday_weather_data.present? %>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div>平均气温：<%= @birthday_weather_data[:avg_temp] %>℃</div>
-                <div>最高气温：<%= @birthday_weather_data[:max_temp] %>℃</div>
-                <div>最低气温：<%= @birthday_weather_data[:min_temp] %>℃</div>
-                <div>降水量：<%= @birthday_weather_data[:precipitation] %> mm</div>
-                <div>风速：<%= @birthday_weather_data[:wind_speed] %> m/s</div>
-                <div>湿度：<%= @birthday_weather_data[:humidity] %> %</div>
-                <div>天气：<%= @birthday_weather_data[:weather_summary] %></div>
-                <div>雨量类型：<%= @birthday_weather_data[:rainfall_type] %></div>
-              </div>
-            <% else %>
-              <p style="color: #888; margin-top: 15px;">超出数据范围啦，但我们相信那天的你笑得比阳光还灿烂 ☀️</p>
-            <% end %>
-          </div>
-
-          <!-- 右侧空白区域，用于保持布局 -->
-          <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
-            <div style="width: 100px; height: 100px;"></div>
-          </div>
-        </div>
-
-      </div>
-
-
-
-
-    </div>
-
-    <!-- 卡片右侧（二维码和按钮） -->
-    <div class="qr-section" style="display: flex; flex-direction: column; justify-content: center; align-items: center; background: white; width: 220px; padding: 24px; border-left: 1px solid #eee; height: 100%;">
-      <%= image_tag 'shareQRcode.png', style: 'width: 100px; height: 100px; margin-bottom: 16px;' %>
-      <%= link_to '再试一次', root_path, class: 'retry-button' %>
-    </div>
+<!-- 修改底部信息区域的HTML结构 -->
+<div id="info-container">
+  <div class="info-column">
+    <h3>我的预报</h3>
+    <p><%= @chosen_date %></p>
+    <p><%= @low_temp%>~<%= @high_temp %></p>
+    <p><%= @chosen_text %></p>
   </div>
+  
+  <div class="image-column">
+    <!-- 图片预留位置 -->
+    <img id="weather-image" 
+     src="<%= @chosen_img%>" 
+     style="max-height: 100%; max-width: 100%; object-fit: contain;"
+     alt="天气图片">
+  </div>
+  
+<div class="info-column">
+  <h3>生日天气</h3>
+  <p><%= @birthday %></p>
+  <% if @birthday_weather_data.present? %>
+    <p><%= @birthday_weather_data[:avg_temp] %>℃ / <%= @birthday_weather_data[:max_temp] %>℃</p>
+    <p><%= @birthday_weather_data[:weather_summary] %></p>
+    <p>降水 <%= @birthday_weather_data[:precipitation] %>mm</p>
+  <% else %>
+    <p>超出数据范围啦，但是一定是个好天气。</p>
+  <% end %>
 </div>
+</div>
+      </div>
+    </div>
 
+<div id="side-content">
+  <h3>分享当前预报</h3>
+  <div id="qrcode"></div>
+  <%= @qr_svg %>
+  <p>扫描二维码分享你的天气预报</p>
+</div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const uploadedBackgroundImage = localStorage.getItem("uploadedBackgroundImage");
+      const uploadedImage = localStorage.getItem("uploadedImage");
 
+      const card = document.getElementById("card");
+      const avatar = document.getElementById("avatar");
 
+      if (uploadedBackgroundImage) {
+        const img = new Image();
+        img.onload = function () {
+          const ratio = this.width / this.height;
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const cardLeft = document.getElementById("card-left");
-        const shareAvatar = document.getElementById("share-avatar");
+          if (ratio >= 1.77) {
+            card.classList.remove("container-4-3");
+            card.classList.add("container-16-9");
+          } else {
+            card.classList.remove("container-16-9");
+            card.classList.add("container-4-3");
+          }
 
-        const uploadedImage = localStorage.getItem("uploadedImage");
-        const uploadedBackgroundImage = localStorage.getItem("uploadedBackgroundImage");
+          card.style.backgroundImage = `url(${uploadedBackgroundImage})`;
+        };
+        img.src = uploadedBackgroundImage;
+      }
 
-        // 设置头像
-        if (uploadedImage && shareAvatar) {
-            shareAvatar.src = uploadedImage;
-            shareAvatar.style.display = "block";  // 确保头像显示
-        } else {
-            shareAvatar.style.display = "none"; // 如果没有头像则隐藏
-        }
-
-        // 设置背景图
-        if (uploadedBackgroundImage && cardLeft) {
-            cardLeft.style.backgroundImage = `url(${uploadedBackgroundImage})`;
-            cardLeft.style.backgroundRepeat = 'no-repeat';  // 防止平铺
-            cardLeft.style.backgroundPosition = 'center';
-            cardLeft.style.backgroundColor = 'white';  // 添加背景色以防图片较小
-        } else {
-            // 设置默认背景（保持原样）
-            cardLeft.style.backgroundImage = "url('<%= asset_path('user-share.jpeg') %>')";
-            cardLeft.style.backgroundSize = "cover";  // 默认背景仍保持cover
-        }
+      if (uploadedImage && avatar) {
+        avatar.src = uploadedImage;
+      }
     });
-</script>
+  </script>
+</body>
+</html>

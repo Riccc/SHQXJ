@@ -2,9 +2,13 @@ require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
-
+  config.hosts << "www.weather-museum.cn"
   # Code is not reloaded between requests.
+  puts "✅ Loaded production.rb"
   config.enable_reloading = false
+  config.hosts << /\Alocalhost(:\d+)?\z/
+  config.hosts << /\A127\.0\.0\.1(:\d+)?\z/
+  config.hosts << /\A10\.228\.97\.154(:\d+)?\z/
 
   # Eager load code on boot. This eager loads most of Rails and
   # your application in memory, allowing both threaded web servers
@@ -18,17 +22,17 @@ Rails.application.configure do
 
   # Ensures that a master key has been made available in ENV["RAILS_MASTER_KEY"], config/master.key, or an environment
   # key such as config/credentials/production.key. This key is used to decrypt credentials (and other encrypted files).
-  # config.require_master_key = true
+  config.require_master_key = true
 
   # Disable serving static files from `public/`, relying on NGINX/Apache to do so instead.
-  # config.public_file_server.enabled = false
+  config.public_file_server.enabled = true
 
   # Compress CSS using a preprocessor.
   # config.assets.css_compressor = :sass
 
   # Do not fall back to assets pipeline if a precompiled asset is missed.
-  config.assets.compile = false
-
+  config.assets.compile = true
+  config.assets.digest = true  # 确保有资源版本化
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
@@ -56,8 +60,8 @@ Rails.application.configure do
 
   # Log to STDOUT by default
   config.logger = ActiveSupport::Logger.new(STDOUT)
-    .tap  { |logger| logger.formatter = ::Logger::Formatter.new }
-    .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
+                                       .tap  { |logger| logger.formatter = ::Logger::Formatter.new }
+                                       .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
 
   # Prepend all log lines with the following tags.
   config.log_tags = [ :request_id ]

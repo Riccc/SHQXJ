@@ -208,16 +208,20 @@
       <!-- 第一个 div：风力风向 -->
       <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
         <label style="font-size: 16px; color: black;">风力风向</label>
-        <select style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; background-color: #f3ececab;">
+        <select style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; background-color: #f3ececab;max-width:60%;">
           <% (0..17).each do |i| %>
             <option value="<%= i %>"><%= i %> 级</option>
           <% end %>
         </select>
-        <select style="padding: 5px; border-radius: 5px; border: 1px solid #ccc;font-size: 15px;background-color: #f3ececab;">
-          <option value="east">东风</option>
-          <option value="west">西风</option>
-          <option value="south">南风</option>
+        <select style="padding: 5px; border-radius: 5px; border: 1px solid #ccc;font-size: 15px;background-color: #f3ececab;max-width:60%;">
           <option value="north">北风</option>
+          <option value="northeast">东北风</option>
+          <option value="east">东风</option>
+          <option value="southeast">东南风</option>
+          <option value="south">南风</option>
+          <option value="southwest">西南风</option>
+          <option value="west">西风</option>
+          <option value="northwest">西北风</option>
         </select>
       </div>
 
@@ -275,9 +279,9 @@
 
           <!-- 按钮 -->
           <button
-            id="edit-button"
-            style="padding: 5px 10px; font-size: 14px; color: #fff; background-color: orange; border: none; border-radius: 5px; cursor: pointer;"
-            onclick="toggleEditor()"
+              id="edit-button"
+              style="padding: 5px 10px; font-size: 14px; color: #fff; background-color: orange; border: none; border-radius: 5px; cursor: pointer;"
+              onclick="toggleEditor()"
           >
             自己写
           </button>
@@ -287,8 +291,8 @@
         <div id="rich-text-container">
           <!-- 下拉框 -->
           <select
-            id="rich-text-select"
-            style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; width: 100%; height: 35px; font-size: 14px;background-color: #f3ececab;"
+              id="rich-text-select"
+              style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; width: 100%; height: 35px; font-size: 14px;background-color: #f3ececab;"
           >
             <option value="请选择预设句子">请选择预设句子</option>
             <option value="今天天气很好，适合外出。">今天天气很好，适合外出。</option>
@@ -298,9 +302,9 @@
 
           <!-- 富文本编辑器 -->
           <textarea
-            id="rich-text-area"
-            style="background-color: #f3ececab;display: none; width: 100%; height: 100px; padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px;"
-            placeholder="在这里输入自定义内容..."
+              id="rich-text-area"
+              style="background-color: #f3ececab;display: none; width: 100%; height: 100px; padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px;"
+              placeholder="在这里输入自定义内容..."
           ></textarea>
         </div>
       </div>
@@ -501,24 +505,24 @@
             });
         });
 
-            const generateButton = document.getElementById("generate-forecast-button"); // 获取“生成预报”按钮
-            const modal = document.getElementById("modal"); // 获取模态框
-            const shareButton = document.getElementById("share-button"); // 获取分享按钮
-            const cameraButton = document.getElementById("camera-button");
-            const avatarPreview = document.getElementById("avatar-preview");
-            const deleteAvatar = document.getElementById("delete-avatar");
+        const generateButton = document.getElementById("generate-forecast-button"); // 获取“生成预报”按钮
+        const modal = document.getElementById("modal"); // 获取模态框
+        const shareButton = document.getElementById("share-button"); // 获取分享按钮
+        const cameraButton = document.getElementById("camera-button");
+        const avatarPreview = document.getElementById("avatar-preview");
+        const deleteAvatar = document.getElementById("delete-avatar");
 
-            // 点击“生成预报”按钮，显示模态框
-            generateButton.addEventListener("click", function() {
-                modal.style.display = "flex";
-            });
+        // 点击“生成预报”按钮，显示模态框
+        generateButton.addEventListener("click", function() {
+            modal.style.display = "flex";
+        });
 
-            // 点击模态框外部，关闭模态框
-            modal.addEventListener("click", function(event) {
-                if (event.target === modal) {
-                    modal.style.display = "none";
-                }
-            });
+        // 点击模态框外部，关闭模态框
+        modal.addEventListener("click", function(event) {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
         //头像上传
         // function triggerUpload() {
         //     const fileInput = document.createElement("input");

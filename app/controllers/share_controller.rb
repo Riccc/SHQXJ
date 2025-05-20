@@ -31,5 +31,13 @@ class ShareController < ApplicationController
         rainfall_type: @birthday_weather.rain_volume
       }
     end
+    require 'rqrcode'
+  @share_url = "https://www.weather-museum.cn/ruby/share/show?name="+@name+"&birthday="+@birthday+"&chosen_date="+@chosen_date+"&low_temp="+@low_temp+"&high_temp="+@high_temp+"&selected_text_content="+@selected_text_content+"&chosen_img="+@chosen_img+"&chosen_text="+@chosen_text
+  @qr_svg = RQRCode::QRCode.new(@share_url).as_svg(
+    offset: 10,
+    color: '000',
+    shape_rendering: 'crispEdges',
+    module_size: 1.5
+  ).html_safe
   end
 end
