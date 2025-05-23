@@ -1,4 +1,6 @@
 class ShareController < ApplicationController
+  # 禁用CSRF验证
+  protect_from_forgery with: :null_session
   def show
     @name = params[:name]
     @birthday = params[:birthday]
@@ -31,13 +33,44 @@ class ShareController < ApplicationController
         rainfall_type: @birthday_weather.rain_volume
       }
     end
-    require 'rqrcode'
-  @share_url = "https://www.weather-museum.cn/ruby/share/show?name="+@name+"&birthday="+@birthday+"&chosen_date="+@chosen_date+"&low_temp="+@low_temp+"&high_temp="+@high_temp+"&selected_text_content="+@selected_text_content+"&chosen_img="+@chosen_img+"&chosen_text="+@chosen_text
-  @qr_svg = RQRCode::QRCode.new(@share_url).as_svg(
-    offset: 10,
-    color: '000',
-    shape_rendering: 'crispEdges',
-    module_size: 1.5
-  ).html_safe
+  end
+
+  def upload_image
+    image_data = params[:image]
+    Rails.logger.info "Upload_image called"
+  image_data = params[:image]
+  if image_data.blank?
+    Rails.logger.warn "No image data received"
+    render json: { error: "No image data received" }, status: :unprocessable_entity
+    return
+  end
+
+    if image_data.present?
+      begin
+        # base64 字符串格式通常是 "data:image/png;base64,xxxxxx"
+        encoded_image = image_data.split(',')[1]
+        decoded_image = Base64.decode64(encoded_image)
+
+        # 文件名用时间戳避免重复
+        filename = "screenshot_#{Time.now.to_i}.png"
+        upload_dir = Rails.root.join('public', 'uploads')
+        filepath = upload_dir.join(filename)
+
+        # 创建上传目录（如果不存在）
+        FileUtils.mkdir_p(upload_dir) unless Dir.exist?(upload_dir)
+
+        # 写文件
+        File.open(filepath, 'wb') do |f|
+          f.write(decoded_image)
+        end
+
+        # 返回图片的可访问URL
+        render json: { url: "#{request.base_url}/uploads/#{filename}" }
+      rescue => e
+        render json: { error: e.message }, status: :unprocessable_entity
+      end
+    else
+      render json: { error: "No image data received" }, status: :unprocessable_entity
+    end
   end
 end

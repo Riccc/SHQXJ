@@ -12,34 +12,23 @@
 
     /* 主容器 */
     #main-container {
-      display: flex;
-      justify-content: center; /* 居中对齐 */
-      padding: 20px;
-      height: calc(100vh - 40px);
-      box-sizing: border-box;
-      flex-wrap: nowrap;
-      align-items: flex-start;
-      gap: 20px; /* 增加子项间距 */
-    }
+  display: flex;
+  justify-content: center; /* 居中对齐 */
+  padding: 20px;
+  height: calc(100vh - 40px);
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 20px; /* 增加子项间距 */
+}
 
-    /* 卡片容器默认宽高，先不写固定宽高，改用类控制 */
+    /* 卡片容器：默认横屏16:9比例 */
     #card-container {
+      width: 768px;
+      height: 881.28px; /* 16:9 */
       margin-bottom: 20px;
       box-sizing: border-box;
       flex-shrink: 0;
-      transition: width 0.3s ease, height 0.3s ease;
-    }
-
-    /* 横图比例卡片：16:9，尺寸加大 */
-    .card-landscape {
-      width: 960px;
-      height: 540px; /* 960 / 16 * 9 */
-    }
-
-    /* 竖图比例卡片：9:16，尺寸加大 */
-    .card-portrait {
-      width: 768px;
-      height: 881.28px; /* 500 / 9 * 16 */
     }
 
     /* 卡片宽高撑满容器 */
@@ -56,13 +45,9 @@
 
     /* 中屏平板依然横屏16:9，但宽度缩小 */
     @media screen and (max-width: 900px) {
-      #card-container.card-landscape {
-        width: 500px;
-        height: 281px; /* 16:9 */
-      }
-      #card-container.card-portrait {
-        width: 300px;
-        height: 533.33px; /* 300 / 9 * 16 */
+      #card-container {
+        width: 400px;
+        height: 225px; /* 16:9 */
       }
     }
 
@@ -75,12 +60,7 @@
         height: auto;
       }
 
-      #card-container.card-landscape {
-        width: 320px;
-        height: 180px; /* 16:9 */
-        margin-bottom: 15px;
-      }
-      #card-container.card-portrait {
+      #card-container {
         width: 320px;
         height: 568px; /* 9:16 竖屏比例 */
         margin-bottom: 15px;
@@ -167,7 +147,7 @@
     #info-container {
       position: absolute;
       bottom: 20px;
-      left: 100px;
+      left: 5%;
       background: rgba(255, 255, 255, 0.4);
       border-radius: 12px;
       padding: 12px;
@@ -222,22 +202,22 @@
     }
 
     /* 二维码样式 */
-    #qrcode {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      height: 128px;
-      padding: 10px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.05);
-      cursor: pointer;
-      transition: transform 0.2s ease-in-out;
-    } 
-    #qrcode > div {
-      margin: 0 auto;
-    }
+#qrcode {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 128px;
+  padding: 10px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+} 
+#qrcode > div {
+  margin: 0 auto;
+}
 
     #qrcode:hover {
       transform: scale(1.05);
@@ -264,11 +244,12 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
   </style>
 </head>
 <body>
   <div id="main-container">
-    <div id="card-container" class="card-landscape">
+    <div id="card-container">
       <div id="card" class="container-16-9">
         <img id="avatar" />
         <% if @name.present? %>
@@ -309,9 +290,9 @@
               <% end %>
             </div>
             <div class="image-column">
-              <!-- 占位图，也可以用透明图像或空 div -->
-              <div style="width: 80px; height: 80px;"></div>
-            </div>
+      <!-- 占位图，也可以用透明图像或空 div -->
+      <div style="width: 80px; height: 80px;"></div>
+    </div>
           </div>
         </div>
       </div>
@@ -330,14 +311,11 @@
   <script src="/js/qrcode.min.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      const card = document.getElementById("card");
-      const cardContainer = document.getElementById("card-container");
-      const avatar = document.getElementById("avatar");
-
-      // 读取头像和背景图
-      const uploadedImage = localStorage.getItem("uploadedImage");
       const uploadedBackgroundImage = localStorage.getItem("uploadedBackgroundImage");
+      const uploadedImage = localStorage.getItem("uploadedImage");
 
+      const card = document.getElementById("card");
+      const avatar = document.getElementById("avatar");
       const qrContainer = document.getElementById("qrcode");
 
       function showLoading() {
@@ -378,49 +356,25 @@
           });
         });
       }
+
+      // 设置背景图
       const defaultAvatar = "<%= asset_path('default_avatar.png') %>";
-      // 头像处理
+      const defaultBackground = "<%= asset_path('default_background.png') %>";
+
+      if (uploadedBackgroundImage) {
+        card.style.backgroundImage = `url(${uploadedBackgroundImage})`;
+      } else {
+        card.style.backgroundImage = `url(${defaultBackground})`;
+        card.style.backgroundSize = "contain"; // 默认图完整显示
+        card.style.backgroundRepeat = "no-repeat";
+        card.style.backgroundPosition = "center";
+      }
+
+      // 设置头像
       if (uploadedImage) {
         avatar.src = uploadedImage;
       } else {
         avatar.src = defaultAvatar;
-      }
-
-      // 背景处理及容器尺寸判断
-      const defaultBackground = "<%= asset_path('default_background.png') %>";
-
-      if (uploadedBackgroundImage) {
-        const img = new Image();
-        img.onload = function () {
-          const width = img.width;
-          const height = img.height;
-          const aspectRatio = width / height;
-
-          // 清除所有尺寸类
-          cardContainer.classList.remove("card-portrait", "card-landscape");
-
-          // 判断比例，小于0.9认为是竖图，其他横图
-          if (aspectRatio < 0.9) {
-            cardContainer.classList.add("card-portrait");
-          } else {
-            cardContainer.classList.add("card-landscape");
-          }
-
-          card.style.backgroundImage = `url(${uploadedBackgroundImage})`;
-          card.style.backgroundSize = "cover";
-          card.style.backgroundRepeat = "no-repeat";
-          card.style.backgroundPosition = "center";
-        };
-        img.src = uploadedBackgroundImage;
-      } else {
-        // 默认背景，使用横屏比例
-        cardContainer.classList.remove("card-landscape");
-        cardContainer.classList.add("card-portrait");
-
-        card.style.backgroundImage = `url(${defaultBackground})`;
-        card.style.backgroundSize = "contain";
-        card.style.backgroundRepeat = "no-repeat";
-        card.style.backgroundPosition = "center";
       }
 
       // 页面加载完成后生成二维码

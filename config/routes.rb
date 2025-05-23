@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   get 'pages/index'
   root 'pages#index'
   get 'share/show', to: 'share#show', as: 'share'
+  post '/upload_image', to: 'share#upload_image'
   resources :posts
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
