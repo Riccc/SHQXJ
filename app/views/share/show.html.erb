@@ -164,21 +164,25 @@
     }
 
     /* info区域 */
-    #info-container {
-      position: absolute;
-      bottom: 20px;
-      left: 100px;
-      background: rgba(255, 255, 255, 0.4);
-      border-radius: 12px;
-      padding: 12px;
-      max-width: 90%;
-      box-sizing: border-box;
-      font-size: 0.85rem;
-      z-index: 3;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+ #info-container {
+  position: absolute;
+  top: 63%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0);
+  border-radius: 16px;
+  padding: 24px 32px;
+  max-width: 70%;
+  box-sizing: border-box;
+  font-size: 1rem;
+  line-height: 1.8; /* 更好的可读性 */
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 5px; /* 每行间距变大 */
+}
+
+
 
     .info-row {
       display: flex;
@@ -195,7 +199,7 @@
     .info-column {
       flex: 1;
       min-width: 120px;
-      text-align: center;
+      text-align: left;
     }
 
     .info-column h3 {
@@ -209,10 +213,9 @@
     }
 
     .image-column {
-      flex: 0 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
     }
 
     .image-column img {
@@ -285,19 +288,20 @@
         <div id="info-container">
           <div class="info-row first-row">
             <div class="info-column">
-              <h3>我的预报</h3>
+              <h3 style="color:#ff801c;">我的预报</h3>
               <p><%= @chosen_date %></p>
-              <p><%= @low_temp %>~<%= @high_temp %></p>
-              <p><%= @chosen_text %></p>
+              <p style="font-weight:700;font-family:DINBold;"><%= @low_temp %>℃ -<%= @high_temp %>℃</p>
+              <p><%= @selected_text_content %></p>
             </div>
             <div class="image-column">
               <img id="weather-image" src="<%= @chosen_img %>" alt="天气图片" />
+              <p><%= @chosen_text %></p>
             </div>
           </div>
 
           <div class="info-row first-row">
             <div class="info-column">
-              <h3>生日天气</h3>
+              <h3 style="color:#ff801c;">生日天气</h3>
               <p><%= @birthday %></p>
               <% if @birthday_weather_data.present? %>
                 <p><%= @birthday_weather_data[:avg_temp] %>℃ / <%= @birthday_weather_data[:max_temp] %>℃</p>
@@ -308,10 +312,9 @@
                 <p>但是一定是个好天气。</p>
               <% end %>
             </div>
-            <div class="image-column">
-              <!-- 占位图，也可以用透明图像或空 div -->
+            <!-- <div class="image-column">
               <div style="width: 80px; height: 80px;"></div>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -387,7 +390,7 @@
       }
 
       // 背景处理及容器尺寸判断
-      const defaultBackground = "<%= asset_path('default_background.png') %>";
+      const defaultBackground = "<%= asset_path('default_background_1.png') %>";
 
       if (uploadedBackgroundImage) {
         const img = new Image();
@@ -413,7 +416,7 @@
         };
         img.src = uploadedBackgroundImage;
       } else {
-        // 默认背景，使用横屏比例
+        // 默认背景，使用竖屏比例
         cardContainer.classList.remove("card-landscape");
         cardContainer.classList.add("card-portrait");
 
