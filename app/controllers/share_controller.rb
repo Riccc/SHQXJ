@@ -36,41 +36,43 @@ class ShareController < ApplicationController
   end
 
   def upload_image
-    image_data = params[:image]
-    Rails.logger.info "Upload_image called"
-  image_data = params[:image]
-  if image_data.blank?
-    Rails.logger.warn "No image data received"
-    render json: { error: "No image data received" }, status: :unprocessable_entity
-    return
-  end
+    Rails.logger.info "[Upload] 开始处理图片上传请求"
+    uploaded_file = params[:image]
+    
+    Rails.logger.debug "[Upload] 接收到的文件: #{uploaded_file.inspect}"
+    
+    if uploaded_file.blank?
+      Rails.logger.warn "[Upload] 错误：未接收到文件"
+      render json: { error: "No file received" }, status: :unprocessable_entity
+      return
+    end
 
-    if image_data.present?
-      begin
-        # base64 字符串格式通常是 "data:image/png;base64,xxxxxx"
-        encoded_image = image_data.split(',')[1]
-        decoded_image = Base64.decode64(encoded_image)
-
-        # 文件名用时间戳避免重复
-        filename = "screenshot_#{Time.now.to_i}.png"
-        upload_dir = Rails.root.join('public', 'uploads')
-        filepath = upload_dir.join(filename)
-
-        # 创建上传目录（如果不存在）
-        FileUtils.mkdir_p(upload_dir) unless Dir.exist?(upload_dir)
-
-        # 写文件
-        File.open(filepath, 'wb') do |f|
-          f.write(decoded_image)
-        end
-
-        # 返回图片的可访问URL
-        render json: { url: "#{request.base_url}/uploads/#{filename}" }
-      rescue => e
-        render json: { error: e.message }, status: :unprocessable_entity
+    begin
+      filename = "screenshot_#{Time.now.to_i}.png"
+      upload_dir = "/Users/tangminpeng/Documents/ruby_uploads/"
+      filepath = upload_dir+filename
+      
+      Rails.logger.info "[Upload] 准备写入文件: #{filepath}"
+      
+      # 检查并创建目录
+      unless Dir.exist?(upload_dir)
+        Rails.logger.info "[Upload] 创建上传目录: #{upload_dir}"
+        FileUtils.mkdir_p(upload_dir)
       end
-    else
-      render json: { error: "No image data received" }, status: :unprocessable_entity
+
+      # 直接保存上传的文件
+      File.open(filepath, 'wb') do |f|
+        f.write(uploaded_file.read)
+      end
+      Rails.logger.info "[Upload] 文件写入成功: #{filepath}"
+
+      image_url = "#{request.base_url}/ruby_uploads/#{filename}"
+      Rails.logger.info "[Upload] 返回图片URL: #{image_url}"
+      render json: { url: image_url }
+      
+    rescue => e
+      Rails.logger.error "[Upload] 发生异常: #{e.message}\n#{e.backtrace.join("\n")}"
+      render json: { error: e.message }, status: :unprocessable_entity
     end
   end
 end

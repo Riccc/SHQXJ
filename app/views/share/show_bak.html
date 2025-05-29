@@ -12,23 +12,34 @@
 
     /* 主容器 */
     #main-container {
-  display: flex;
-  justify-content: center; /* 居中对齐 */
-  padding: 20px;
-  height: calc(100vh - 40px);
-  box-sizing: border-box;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  gap: 20px; /* 增加子项间距 */
-}
+      display: flex;
+      justify-content: center; /* 居中对齐 */
+      padding: 20px;
+      height: calc(100vh - 40px);
+      box-sizing: border-box;
+      flex-wrap: nowrap;
+      align-items: flex-start;
+      gap: 20px; /* 增加子项间距 */
+    }
 
-    /* 卡片容器：默认横屏16:9比例 */
+    /* 卡片容器默认宽高，先不写固定宽高，改用类控制 */
     #card-container {
-      width: 768px;
-      height: 881.28px; /* 16:9 */
       margin-bottom: 20px;
       box-sizing: border-box;
       flex-shrink: 0;
+      transition: width 0.3s ease, height 0.3s ease;
+    }
+
+    /* 横图比例卡片：16:9，尺寸加大 */
+    .card-landscape {
+      width: 960px;
+      height: 540px; /* 960 / 16 * 9 */
+    }
+
+    /* 竖图比例卡片：9:16，尺寸加大 */
+    .card-portrait {
+      width: 768px;
+      height: 881.28px; /* 500 / 9 * 16 */
     }
 
     /* 卡片宽高撑满容器 */
@@ -45,9 +56,13 @@
 
     /* 中屏平板依然横屏16:9，但宽度缩小 */
     @media screen and (max-width: 900px) {
-      #card-container {
-        width: 400px;
-        height: 225px; /* 16:9 */
+      #card-container.card-landscape {
+        width: 500px;
+        height: 281px; /* 16:9 */
+      }
+      #card-container.card-portrait {
+        width: 300px;
+        height: 533.33px; /* 300 / 9 * 16 */
       }
     }
 
@@ -60,7 +75,12 @@
         height: auto;
       }
 
-      #card-container {
+      #card-container.card-landscape {
+        width: 320px;
+        height: 180px; /* 16:9 */
+        margin-bottom: 15px;
+      }
+      #card-container.card-portrait {
         width: 320px;
         height: 568px; /* 9:16 竖屏比例 */
         margin-bottom: 15px;
@@ -144,21 +164,59 @@
     }
 
     /* info区域 */
-    #info-container {
-      position: absolute;
-      bottom: 20px;
-      left: 5%;
-      background: rgba(255, 255, 255, 0.4);
-      border-radius: 12px;
-      padding: 12px;
-      max-width: 90%;
-      box-sizing: border-box;
-      font-size: 0.85rem;
-      z-index: 3;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+ #info-container {
+  position: absolute;
+  top: 63%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0);
+  border-radius: 16px;
+  padding: 24px 32px;
+  max-width: 70%;
+  box-sizing: border-box;
+  font-size: 1rem;
+  line-height: 1.8; /* 更好的可读性 */
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 5px; /* 每行间距变大 */
+}
+
+#info-container-cross {
+  position: absolute;
+  top: 53%;
+  left: 30%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0);
+  border-radius: 16px;
+  padding: 24px 32px;
+  max-width: 70%;
+  box-sizing: border-box;
+  font-size: 1rem;
+  line-height: 1.8; /* 更好的可读性 */
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 5px; /* 每行间距变大 */
+}
+
+#info-container-vertical {
+  position: absolute;
+  top: 90%;
+  left: 35%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0);
+  border-radius: 16px;
+  padding: 24px 32px;
+  max-width: 70%;
+  box-sizing: border-box;
+  font-size: 1rem;
+  line-height: 1.8; /* 更好的可读性 */
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 5px; /* 每行间距变大 */
+}
 
     .info-row {
       display: flex;
@@ -175,7 +233,7 @@
     .info-column {
       flex: 1;
       min-width: 120px;
-      text-align: center;
+      text-align: left;
     }
 
     .info-column h3 {
@@ -189,10 +247,9 @@
     }
 
     .image-column {
-      flex: 0 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
     }
 
     .image-column img {
@@ -202,22 +259,22 @@
     }
 
     /* 二维码样式 */
-#qrcode {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 128px;
-  padding: 10px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  transition: transform 0.2s ease-in-out;
-} 
-#qrcode > div {
-  margin: 0 auto;
-}
+    #qrcode {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 128px;
+      padding: 10px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.05);
+      cursor: pointer;
+      transition: transform 0.2s ease-in-out;
+    } 
+    #qrcode > div {
+      margin: 0 auto;
+    }
 
     #qrcode:hover {
       transform: scale(1.05);
@@ -244,12 +301,11 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
   </style>
 </head>
 <body>
   <div id="main-container">
-    <div id="card-container">
+    <div id="card-container" class="card-landscape">
       <div id="card" class="container-16-9">
         <img id="avatar" />
         <% if @name.present? %>
@@ -263,22 +319,23 @@
           <p id="line2">今天我在上海气象博物馆预报天气</p>
         </div>
 
-        <div id="info-container">
+        <div id="info-container" style="display:none;">
           <div class="info-row first-row">
             <div class="info-column">
-              <h3>我的预报</h3>
+              <h3 style="color:#ff801c;">我的预报</h3>
               <p><%= @chosen_date %></p>
-              <p><%= @low_temp %>~<%= @high_temp %></p>
-              <p><%= @chosen_text %></p>
+              <p style="font-weight:700;font-family:DINBold;"><%= @low_temp %>℃ -<%= @high_temp %>℃</p>
+              <p><%= @selected_text_content %></p>
             </div>
             <div class="image-column">
               <img id="weather-image" src="<%= @chosen_img %>" alt="天气图片" />
+              <p><%= @chosen_text %></p>
             </div>
           </div>
 
           <div class="info-row first-row">
             <div class="info-column">
-              <h3>生日天气</h3>
+              <h3 style="color:#ff801c;">生日天气</h3>
               <p><%= @birthday %></p>
               <% if @birthday_weather_data.present? %>
                 <p><%= @birthday_weather_data[:avg_temp] %>℃ / <%= @birthday_weather_data[:max_temp] %>℃</p>
@@ -289,10 +346,77 @@
                 <p>但是一定是个好天气。</p>
               <% end %>
             </div>
+            <!-- <div class="image-column">
+              <div style="width: 80px; height: 80px;"></div>
+            </div> -->
+          </div>
+        </div>
+      </div>
+
+      <div id="info-container-cross" style="display:none;">
+          <div class="info-row first-row">
+            <div class="info-column">
+              <h3 style="color:#ff801c;">我的预报</h3>
+              <p><%= @chosen_date %></p>
+              <p style="font-weight:700;font-family:DINBold;"><%= @low_temp %>℃ -<%= @high_temp %>℃</p>
+              <p><%= @selected_text_content %></p>
+            </div>
             <div class="image-column">
-      <!-- 占位图，也可以用透明图像或空 div -->
-      <div style="width: 80px; height: 80px;"></div>
-    </div>
+              <img id="weather-image" src="<%= @chosen_img %>" alt="天气图片" />
+              <p><%= @chosen_text %></p>
+            </div>
+          </div>
+
+          <div class="info-row first-row">
+            <div class="info-column">
+              <h3 style="color:#ff801c;">生日天气</h3>
+              <p><%= @birthday %></p>
+              <% if @birthday_weather_data.present? %>
+                <p><%= @birthday_weather_data[:avg_temp] %>℃ / <%= @birthday_weather_data[:max_temp] %>℃</p>
+                <p><%= @birthday_weather_data[:weather_summary] %></p>
+                <p>降水 <%= @birthday_weather_data[:precipitation] %>mm</p>
+              <% else %>
+                <p>超出数据范围啦，</p>
+                <p>但是一定是个好天气。</p>
+              <% end %>
+            </div>
+            <!-- <div class="image-column">
+              <div style="width: 80px; height: 80px;"></div>
+            </div> -->
+          </div>
+        </div>
+      </div>
+
+      <div id="info-container-vertical" style="display:none;">
+          <div class="info-row first-row">
+            <div class="info-column">
+              <h3 style="color:#ff801c;">我的预报</h3>
+              <p><%= @chosen_date %></p>
+              <p style="font-weight:700;font-family:DINBold;"><%= @low_temp %>℃ -<%= @high_temp %>℃</p>
+              <p><%= @selected_text_content %></p>
+            </div>
+            <div class="image-column">
+              <img id="weather-image" src="<%= @chosen_img %>" alt="天气图片" />
+              <p><%= @chosen_text %></p>
+            </div>
+          </div>
+
+          <div class="info-row first-row">
+            <div class="info-column">
+              <h3 style="color:#ff801c;">生日天气</h3>
+              <p><%= @birthday %></p>
+              <% if @birthday_weather_data.present? %>
+                <p><%= @birthday_weather_data[:avg_temp] %>℃ / <%= @birthday_weather_data[:max_temp] %>℃</p>
+                <p><%= @birthday_weather_data[:weather_summary] %></p>
+                <p>降水 <%= @birthday_weather_data[:precipitation] %>mm</p>
+              <% else %>
+                <p>超出数据范围啦，</p>
+                <p>但是一定是个好天气。</p>
+              <% end %>
+            </div>
+            <!-- <div class="image-column">
+              <div style="width: 80px; height: 80px;"></div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -311,11 +435,17 @@
   <script src="/js/qrcode.min.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      const uploadedBackgroundImage = localStorage.getItem("uploadedBackgroundImage");
-      const uploadedImage = localStorage.getItem("uploadedImage");
-
       const card = document.getElementById("card");
+      const cardContainer = document.getElementById("card-container");
+      const infoContainer = document.getElementById("info-container");
+      const infoContainerCross = document.getElementById("info-container-cross");
+      const infoContainerVertical = document.getElementById("info-container-vertical");
       const avatar = document.getElementById("avatar");
+
+      // 读取头像和背景图
+      const uploadedImage = localStorage.getItem("uploadedImage");
+      const uploadedBackgroundImage = localStorage.getItem("uploadedBackgroundImage");
+
       const qrContainer = document.getElementById("qrcode");
 
       function showLoading() {
@@ -356,25 +486,58 @@
           });
         });
       }
-
-      // 设置背景图
       const defaultAvatar = "<%= asset_path('default_avatar.png') %>";
-      const defaultBackground = "<%= asset_path('default_background.png') %>";
-
-      if (uploadedBackgroundImage) {
-        card.style.backgroundImage = `url(${uploadedBackgroundImage})`;
-      } else {
-        card.style.backgroundImage = `url(${defaultBackground})`;
-        card.style.backgroundSize = "contain"; // 默认图完整显示
-        card.style.backgroundRepeat = "no-repeat";
-        card.style.backgroundPosition = "center";
-      }
-
-      // 设置头像
+      // 头像处理
       if (uploadedImage) {
         avatar.src = uploadedImage;
       } else {
         avatar.src = defaultAvatar;
+      }
+
+      // 背景处理及容器尺寸判断
+      const defaultBackground = "<%= asset_path('default_background_1.png') %>";
+
+      if (uploadedBackgroundImage) {
+        const img = new Image();
+        img.onload = function () {
+          const width = img.width;
+          const height = img.height;
+          const aspectRatio = width / height;
+
+          // 清除所有尺寸类
+          cardContainer.classList.remove("card-portrait", "card-landscape");
+
+          // 判断比例，小于0.9认为是竖图，其他横图
+          if (aspectRatio < 0.9) {
+            infoContainer.style.display = 'none';
+            infoContainerVertical.style.display = '';
+            infoContainerCross.style.display = 'none';
+            cardContainer.classList.add("card-portrait");
+          } else {
+            infoContainer.style.display = 'none';
+            infoContainerVertical.style.display = 'none';
+            infoContainerCross.style.display = '';
+            cardContainer.classList.add("card-landscape");
+          }
+
+          card.style.backgroundImage = `url(${uploadedBackgroundImage})`;
+          card.style.backgroundSize = "cover";
+          card.style.backgroundRepeat = "no-repeat";
+          card.style.backgroundPosition = "center";
+        };
+        img.src = uploadedBackgroundImage;
+      } else {
+        infoContainer.style.display = '';
+        infoContainerVertical.style.display = 'none';
+        infoContainerCross.style.display = 'none';
+        // 默认背景，使用竖屏比例
+        cardContainer.classList.remove("card-landscape");
+        cardContainer.classList.add("card-portrait");
+
+        card.style.backgroundImage = `url(${defaultBackground})`;
+        card.style.backgroundSize = "contain";
+        card.style.backgroundRepeat = "no-repeat";
+        card.style.backgroundPosition = "center";
       }
 
       // 页面加载完成后生成二维码
